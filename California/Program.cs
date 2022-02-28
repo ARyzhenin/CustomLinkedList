@@ -15,11 +15,11 @@ namespace California
         public Item<T> Next { get; set; }
     }
 
-    public class LinkedItem<T>
+    public class LinkedItem<T> : IEnumerable, IEnumerator
     {
         private Item<T> _head;
         private Item<T> _tail;
-        private Item<T> current;
+        private Item<T> _position;
 
         public void Add(T item)
         {
@@ -28,7 +28,7 @@ namespace California
             if (_head == null)
             {
                 _head = node;
-                current = node;
+                //_position = node;
                 _tail = node;
             }
             else
@@ -37,21 +37,44 @@ namespace California
                 _tail = node;
             }
         }
-        public void Reset() => current = _head;
 
+        //Реализация IEnumerator
+        public bool MoveNext()
+        {
+            if (_position == null)
+            {
+                _position = _head;
+                return true;
+            }
+            if (_position.Next != null)
+            {
+                _position = _position.Next;
+                return true;
+            }
+            else
+            {
+                Reset();
+                return false;
+            }
+        }
+
+        public void Reset()
+        {
+            _position = null;
+        }
+
+        public object Current
+        {
+            get
+            {
+                return _position.Value;
+            }
+        }
+
+        //Реализация IEnumerable
         public IEnumerator GetEnumerator()
         {
-            while (true)
-                if (current != null)
-                {
-                    yield return current.Value;
-                    current = current.Next;
-                }
-                else
-                {
-                    Reset();
-                    yield break;
-                }
+            return this as IEnumerator;
         }
     }
 
@@ -60,9 +83,12 @@ namespace California
         static void Main(string[] args)
         {
             var collection = new LinkedItem<string>();
+
             collection.Add("first");
             collection.Add("second");
             collection.Add("third");
+            collection.Add("fourth");
+
             foreach (var item in collection)
             {
                 Console.WriteLine(item);
